@@ -103,8 +103,13 @@ If present, QEMU will automatically use **KVM acceleration**.
 
 ---
 
-## Important Notes (Windows Guests)
+## Important Notes 
 
+### Vnc password
+* for deafult password is:
+```
+lemem1234
+```
 ### RAM Allocation
 
 * **Minimum recommended RAM for Windows:** **4 GB (4096 MB)**
