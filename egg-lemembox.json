@@ -1,0 +1,122 @@
+{
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2026-01-19T12:55:23+01:00",
+    "name": "lemembox",
+    "author": "hi@mrbeenopro.site",
+    "description": "Running virtual machines to Pterodactyl",
+    "features": [],
+    "docker_images": {
+        "qemu": "ghcr.io\/mrbeeenopro\/qemu:latest"
+    },
+    "file_denylist": [],
+    "startup": "qemu-system-x86_64 -device qemu-xhci -m {{RAM}} $( [ -w \/dev\/kvm ] && echo \"--enable-kvm -cpu host\" || echo \"-accel tcg,thread=multi,tb-size=128,split-wx=on\" ) -smp sockets=1,cores=$(nproc),threads=1 $( [ -z \"${ISO_FILE}\" ] && echo \"\" || echo \"-cdrom ${ISO_FILE}\" ) -drive file={{DISK_FILE}}$( [ \"${USE_VIRTIO}\" == \"1\" ] && echo \",aio=native,cache.direct=on,if=virtio\" || echo \"\" ) $( [ -z \"${SHARED_DIR}\" ] && echo \"\" || echo \"-drive file=fat:rw:${SHARED_DIR}\" ) $( [ \"${USE_GPU}\" == \"1\" ] && echo \"-device virtio-gpu-gl-pci,max_hostmem=256M -display egl-headless\" || echo \"-vga std\" )  $( [ \"${USE_VIRTIO_NET}\" == \"1\" ] && echo \"-device virtio-net-pci,netdev=n0 -netdev user,id=n0,{{FORWARD_PORTS}}\" || echo \"-net nic -net user,{{FORWARD_PORTS}}\" ) -usbdevice tablet -boot c,menu=on $( [ \"${USE_UEFI}\" == \"1\" ] && echo \"-pflash OVMF.fd\" || echo \"\" ) -vnc 0.0.0.0:$((SERVER_PORT - 5900)),password -monitor stdio < qemu_cmd.txt",
+    "config": {
+        "files": "{}",
+        "startup": "{\r\n    \"done\": [\r\n        \"monitor - type 'help' for more information\",\r\n        \"(qemu) change vnc password\"\r\n    ]\r\n}",
+        "logs": "{}",
+        "stop": "^^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/bash\r\napt update\r\napt install -y qemu-utils wget curl sed\r\n\r\n\r\ncd \/mnt\/server\r\n\r\nif [ ! -f \"disk.qcow2\" ]; then\r\n    echo \"Creating 100GB qcow2 disk image t\u1ea1i \/mnt\/server...\"\r\n    qemu-img create -f qcow2 disk.qcow2 100G\r\nelse\r\n    echo \"Disk image already exists, skipping...\"\r\nfi\r\n\r\n\r\necho \"Downloading OVMF.fd...\"\r\nwget -O OVMF.fd https:\/\/cdn.bosd.io.vn\/OVMF.fd\r\nwget https:\/\/dl-cdn.alpinelinux.org\/alpine\/v3.23\/releases\/x86_64\/alpine-virt-3.23.2-x86_64.iso\r\n\r\nuser_passwd=\"lemem1234\"\r\n\r\necho \"Configuring VNC password logic...\"\r\necho 'change vnc password' > qemu_cmd.txt\r\necho \"$user_passwd\" > vnc_raw_passwd.txt\r\ncat vnc_raw_passwd.txt >> qemu_cmd.txt\r\n\r\nmkdir -p \/home\/container\/shared\r\nchmod 777 \/home\/container\/shared\r\nchmod 666 qemu_cmd.txt\r\nchmod 666 OVMF.fd\r\nchmod 666 alpine-virt-3.23.2-x86_64.iso\r\nchmod 666 vnc_raw_passwd.txt\r\nchmod 666 disk.qcow2\r\necho \"Installation done!\"",
+            "container": "ghcr.io\/pterodactyl\/installers:debian",
+            "entrypoint": "\/bin\/sh"
+        }
+    },
+    "variables": [
+        {
+            "name": "Guest Memory",
+            "description": "Set the host memory for the virtual machine (VM) here.",
+            "env_variable": "RAM",
+            "default_value": "2048",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:255",
+            "field_type": "text"
+        },
+        {
+            "name": "Iso file",
+            "description": "Place the .iso file on the server; you should put it there for the first boot.",
+            "env_variable": "ISO_FILE",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string|max:255",
+            "field_type": "text"
+        },
+        {
+            "name": "Disk File",
+            "description": "Default disk file for virtual machines",
+            "env_variable": "DISK_FILE",
+            "default_value": "disk.qcow2",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:50",
+            "field_type": "text"
+        },
+        {
+            "name": "Additional Ports",
+            "description": "Format: hostfwd=tcp::HOST-:GUEST. To add multiple ports, use commas. For example: hostfwd=tcp::8080-:80, hostfwd=tcp::2222-:22",
+            "env_variable": "FORWARD_PORTS",
+            "default_value": "hostfwd=tcp::8080-:80",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|regex:\/^hostfwd=tcp::\\d+-:\\d+(,hostfwd=tcp::\\d+-:\\d+)*$\/",
+            "field_type": "text"
+        },
+        {
+            "name": "Enable UEFI",
+            "description": "Select \"1\" to use UEFI (load OVMF.fd), select \"0\" to use legacy mode.",
+            "env_variable": "USE_UEFI",
+            "default_value": "1",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|boolean",
+            "field_type": "text"
+        },
+        {
+            "name": "Enable VirtIO Disk",
+            "description": "Select \"1\" to enable high performance (VirtIO, Native AIO). Select \"0\" to use the default settings.",
+            "env_variable": "USE_VIRTIO",
+            "default_value": "0",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|boolean",
+            "field_type": "text"
+        },
+        {
+            "name": "Shared Directory",
+            "description": "Enter the path to the directory you want to share from the host to the virtual machine. Leave it blank if not in use. For example: \/home\/container\/shared",
+            "env_variable": "SHARED_DIR",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string|max:255",
+            "field_type": "text"
+        },
+        {
+            "name": "Enable VirtIO GPU",
+            "description": "Enter 1 to enable GPU VirtIO (OpenGL support), enter 0 to use the default VGA. You should enable it if your server has a graphics card.",
+            "env_variable": "USE_GPU",
+            "default_value": "1",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|boolean",
+            "field_type": "text"
+        },
+        {
+            "name": "Enable VirtIO Network",
+            "description": "Select 1 to use VirtIO Network (high speed, requires a driver). Select 0 to use the default Realtek network card (compatible with all OS).",
+            "env_variable": "USE_VIRTIO_NET",
+            "default_value": "0",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|boolean",
+            "field_type": "text"
+        }
+    ]
+}
