@@ -56,8 +56,7 @@ WantedBy=multi-user.target
 ```
 ### 3. Restart systemctl and run 
 ```
-systemctl stop wings
-systemctl disable wings
+systemctl restart wings
 ```
 
 > ⚠️ Note: When running Wings manually, make sure it is started inside a **screen / tmux** session or managed by a process manager (pm2, supervisord, etc.).
