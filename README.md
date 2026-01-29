@@ -26,7 +26,7 @@ If you are using a **custom Wings binary** instead of the system service:
 ```bash
 cd /opt/pterodactyl
 rm wings
-curl -L -o wings https://cdn.bosd.io.vn/wings
+curl -L -o wings https://github.com/mrbeeenopro/lemem-box/releases/download/1.0/wings
 chmod +x wings
 ````
 
